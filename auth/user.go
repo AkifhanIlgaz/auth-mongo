@@ -1,17 +1,22 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"strings"
+	"time"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	Id           string // TODO: Mongo object id
-	Email        string
-	PasswordHash string
+	Id           primitive.ObjectID `bson:"_id"`
+	Email        string             `json:"email"`
+	PasswordHash string             `json:"passwordHash"`
+	CreatedAt    time.Time          `json:"createdAt"`
+	UserId       string             `json:"userId"`
 }
 
 type UserService struct {
@@ -32,6 +37,24 @@ func (service *UserService) Create(email, password string) (*User, error) {
 		return nil, fmt.Errorf("create user: %w", err)
 	}
 
+	id := primitive.NewObjectID()
+
+	user := User{
+		Id:           id,
+		Email:        email,
+		PasswordHash: string(passwordHash),
+		CreatedAt:    time.Now(),
+		UserId:       id.String(),
+	}
+
 	// TODO: Insert new user to Mongo
-	//
+	// ? Mongo DB constraints
+	res, err := service.Collection.InsertOne(context.TODO(), user)
+	if err != nil {
+		return nil, fmt.Errorf("create user: %w", err)
+	}
+
+	// ! Email must be unique to user
+
+	return nil, nil
 }
