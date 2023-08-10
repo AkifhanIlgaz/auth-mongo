@@ -3,11 +3,11 @@ package auth
 import "go.mongodb.org/mongo-driver/mongo"
 
 type PasswordResetService struct {
-	DB *mongo.Database
+	Collection *mongo.Collection
 }
 
-func newPasswordResetService(client *mongo.Client) *PasswordResetService {
+func newPasswordResetService(client *mongo.Client, database, collection string) *PasswordResetService {
 	return &PasswordResetService{
-		DB: client.Database("password-reset-tokens"),
+		Collection: client.Database(database).Collection(collection),
 	}
 }

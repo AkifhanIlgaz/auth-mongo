@@ -15,7 +15,7 @@ type AuthService struct {
 	PasswordResetService *PasswordResetService
 }
 
-func New(mongoUri string) (*AuthService, error) {
+func New(mongoUri string, database string) (*AuthService, error) {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(mongoUri).SetServerAPIOptions(serverAPI)
 
@@ -23,7 +23,6 @@ func New(mongoUri string) (*AuthService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("new auth : %w", err)
 	}
-	
 
 	if err := client.Database("admin").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Err(); err != nil {
 		return nil, fmt.Errorf("new auth: %w", err)
@@ -31,8 +30,8 @@ func New(mongoUri string) (*AuthService, error) {
 	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
 
 	return &AuthService{
-		UserService:          newUserService(client),
-		SessionService:       newSessionService(client),
-		PasswordResetService: newPasswordResetService(client),
+		UserService:          newUserService(client, database, "users"),
+		SessionService:       newSessionService(client, database, "sessions"),
+		PasswordResetService: newPasswordResetService(client, database, "password-reset-tokens"),
 	}, nil
 }

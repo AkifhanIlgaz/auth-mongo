@@ -3,11 +3,11 @@ package auth
 import "go.mongodb.org/mongo-driver/mongo"
 
 type SessionService struct {
-	DB *mongo.Database
+	Collection *mongo.Collection
 }
 
-func newSessionService(client *mongo.Client) *SessionService {
+func newSessionService(client *mongo.Client, database, collection string) *SessionService {
 	return &SessionService{
-		DB: client.Database("sessions"),
+		Collection: client.Database(database).Collection(collection),
 	}
 }
