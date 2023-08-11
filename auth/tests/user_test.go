@@ -29,8 +29,48 @@ func TestCreateUser(t *testing.T) {
 		}
 	}
 
-	// Cannot create user with an existing email
-	if _, err := authService.UserService.Create(email, password); err != auth.ErrEmailTaken {
-		t.Fatal("creating user with an existing email")
+}
+
+func TestDuplicateUser(t *testing.T) {
+	email, password := "testduplicate@gmail.com", "testing"
+
+	// Create new user
+	if _, err := authService.UserService.Create(email, password); err != nil {
+		if err != auth.ErrEmailTaken {
+			t.Fatalf("cannot create user, %v", err)
+		}
+	}
+
+	// Create another user with same email
+	if _, err := authService.UserService.Create(email, password); err == nil {
+		t.Fatalf("creating user with duplicate email")
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	email, password := "testdelete@gmail.com", "testing"
+
+	user, err := authService.UserService.Create(email, password)
+	if err != nil {
+		if err != auth.ErrEmailTaken {
+			t.Fatalf("cannot create user, %v", err)
+		}
+	}
+
+	// Delete user
+	authService.UserService.Delete(user.UserId)
+
+	// Check if it is successfully deleted
+	if err := authService.UserService.Delete(user.UserId); err == nil {
+		t.Fatal("non-existing user is deleted")
+	}
+}
+
+func TestNonExistingUser(t *testing.T) {
+	userid := "1"
+
+	err := authService.UserService.Delete(userid)
+	if err == nil {
+		t.Fatal("deleting non-existing user")
 	}
 }
