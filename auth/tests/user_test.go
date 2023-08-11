@@ -95,3 +95,35 @@ func TestUpdatePassword(t *testing.T) {
 		t.Fatal("password hashes are the same")
 	}
 }
+
+func TestAuthenticateWithCorrectPassword(t *testing.T) {
+	email, password := "testauthenticatewithcorrectpassword@gmail.com", "testing"
+
+	_, err := authService.UserService.Create(email, password)
+	if err != nil {
+		if err != auth.ErrEmailTaken {
+			t.Fatalf("cannot create user, %v", err)
+		}
+	}
+
+	_, err = authService.UserService.Authenticate(email, password)
+	if err != nil {
+		t.Fatal("cannot authenticate with correct password")
+	}
+}
+
+func TestAuthenticateWithWrongPassword(t *testing.T) {
+	email, password := "testauthenticatewithwrongpassword@gmail.com", "testing"
+
+	_, err := authService.UserService.Create(email, password)
+	if err != nil {
+		if err != auth.ErrEmailTaken {
+			t.Fatalf("cannot create user, %v", err)
+		}
+	}
+
+	_, err = authService.UserService.Authenticate(email, "testing2")
+	if err == nil {
+		t.Fatal("authenticate with wrong password")
+	}
+}
