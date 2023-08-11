@@ -78,3 +78,28 @@ func (service *UserService) Delete(userId string) error {
 
 	return nil
 }
+
+func (service *UserService) UpdatePassword(userId string, password string) error {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("update password | bcrypt: %w", err)
+	}
+
+	res, err := service.collection.UpdateOne(
+		context.TODO(), bson.M{
+			"userid": userId,
+		}, bson.M{
+			"$set": bson.M{
+				"passwordhash": string(passwordHash),
+			},
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("update password | update one: %w", err)
+	}
+	if res.ModifiedCount == 0 {
+		return ErrUserDoesntExist
+	}
+
+	return nil
+}

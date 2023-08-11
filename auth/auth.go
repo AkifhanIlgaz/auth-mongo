@@ -30,8 +30,8 @@ func New(mongoUri string, database string) (*AuthService, error) {
 	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
 
 	return &AuthService{
-		UserService:          newUserService(client, database, "users"),
-		SessionService:       newSessionService(client, database, "sessions"),
-		PasswordResetService: newPasswordResetService(client, database, "password-reset-tokens"),
+		UserService:          newUserService(client, database, "Users"),
+		SessionService:       newSessionService(client, database, "Sessions"),
+		PasswordResetService: newPasswordResetService(client, database, "PasswordResetTokens"),
 	}, nil
 }
