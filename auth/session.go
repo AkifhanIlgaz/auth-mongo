@@ -18,7 +18,7 @@ type Session struct {
 	Id        primitive.ObjectID `bson:"_id"`
 	UserId    string             `json:"userId"`
 	SessionId string             `json:"sessionId"`
-	Token     string             `json:"omitempty"`
+	Token     string             `json:"-"`
 	TokenHash string             `json:"tokenHash"`
 }
 
@@ -46,9 +46,6 @@ func (service *SessionService) Create(userId string) (*Session, error) {
 		TokenHash: service.hash(token),
 	}
 
-	// TODO:
-	// Check if user has valid session token
-	// If so, update session token with the new one
 	count, err := service.collection.CountDocuments(context.TODO(), bson.M{
 		"userid": userId,
 	})
