@@ -64,3 +64,17 @@ func (service *UserService) Create(email, password string) (*User, error) {
 
 	return &user, nil
 }
+
+func (service *UserService) Delete(userId string) error {
+	res, err := service.collection.DeleteOne(context.TODO(), bson.M{
+		"userid": userId,
+	})
+	if err != nil {
+		return fmt.Errorf("delete user: %w", err)
+	}
+	if res.DeletedCount == 0 {
+		return ErrUserDoesntExist
+	}
+
+	return nil
+}
