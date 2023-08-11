@@ -1,11 +1,13 @@
 package auth
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 
 	"github.com/AkifhanIlgaz/auth-mongo/rand"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -15,7 +17,8 @@ const BytesPerToken = 32
 type Session struct {
 	Id        primitive.ObjectID `bson:"_id"`
 	UserId    string             `json:"userId"`
-	Token     string             `json:"-"`
+	SessionId string             `json:"sessionId"`
+	Token     string             `json:"omitempty"`
 	TokenHash string             `json:"tokenHash"`
 }
 
@@ -38,14 +41,43 @@ func (service *SessionService) Create(userId string) (*Session, error) {
 	id := primitive.NewObjectID()
 	session := Session{
 		Id:        id,
-		UserId:    id.Hex(),
-		Token:     token,
+		SessionId: id.Hex(),
+		UserId:    userId,
 		TokenHash: service.hash(token),
 	}
 
+	// TODO:
 	// Check if user has valid session token
 	// If so, update session token with the new one
+	count, err := service.collection.CountDocuments(context.TODO(), bson.M{
+		"userid": userId,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("create user & count: %w", err)
+	}
+	if count > 0 {
+		// update
+		res, err := service.collection.UpdateOne(context.TODO(), bson.M{
+			"userid": userId,
+		},
+			bson.M{
+				"$set": bson.M{
+					"tokenhash": session.TokenHash,
+				},
+			},
+		)
+		if err != nil || res.ModifiedCount == 0 {
+			return nil, fmt.Errorf("create session | update: %w", err)
+		}
+	} else {
+		// insert
+		_, err := service.collection.InsertOne(context.Background(), session)
+		if err != nil {
+			return nil, fmt.Errorf("create session | insert: %w", err)
+		}
+	}
 
+	session.Token = token
 	return &session, nil
 
 }
