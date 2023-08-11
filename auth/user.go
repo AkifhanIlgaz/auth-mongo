@@ -104,6 +104,26 @@ func (service *UserService) UpdatePassword(userId string, password string) error
 	return nil
 }
 
+func (service *UserService) Authenticate(email, password string) (*User, error) {
+	var user User
+
+	res := service.collection.FindOne(context.TODO(), bson.M{
+		"email": email,
+	})
+	err := res.Decode(&user)
+	if err != nil {
+		return nil, fmt.Errorf("authenticate user | decode: %w", err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+	if err != nil {
+		return nil, ErrWrongPassword
+	}
+
+	return &user, nil
+}
+
+// TODO: Delete
 func (service *UserService) GetUser(userId string) User {
 	var user User
 
