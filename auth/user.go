@@ -103,3 +103,15 @@ func (service *UserService) UpdatePassword(userId string, password string) error
 
 	return nil
 }
+
+func (service *UserService) GetUser(userId string) User {
+	var user User
+
+	res := service.collection.FindOne(context.TODO(), bson.M{
+		"userid": userId,
+	})
+
+	res.Decode(&user)
+
+	return user
+}

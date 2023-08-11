@@ -74,3 +74,24 @@ func TestNonExistingUser(t *testing.T) {
 		t.Fatal("deleting non-existing user")
 	}
 }
+
+func TestUpdatePassword(t *testing.T) {
+	email, password := "testupdatepassword@gmail.com", "testing"
+
+	user, err := authService.UserService.Create(email, password)
+	if err != nil {
+		if err != auth.ErrEmailTaken {
+			t.Fatalf("cannot create user, %v", err)
+		}
+	}
+
+	if err = authService.UserService.UpdatePassword(user.UserId, "nesdşflksf"); err != nil {
+		t.Fatal("cannot update password")
+	}
+
+	newUser := authService.UserService.GetUser(user.UserId)
+
+	if newUser.PasswordHash == user.PasswordHash {
+		t.Fatal("password hashes are the same")
+	}
+}
