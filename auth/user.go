@@ -30,7 +30,7 @@ func newUserService(client *mongo.Client, database, collection string) *UserServ
 	}
 }
 
-// Make sure that email is valid and password is strong on front-end
+// ! Make sure that email is valid and password is strong on front-end
 func (service *UserService) Create(email, password string) (*User, error) {
 	email = strings.TrimSpace(email)
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -54,7 +54,7 @@ func (service *UserService) Create(email, password string) (*User, error) {
 		return nil, fmt.Errorf("create user & count: %w", err)
 	}
 	if count > 0 {
-		return nil, fmt.Errorf("email already exists")
+		return nil, ErrEmailTaken
 	}
 
 	_, err = service.collection.InsertOne(context.TODO(), user)
