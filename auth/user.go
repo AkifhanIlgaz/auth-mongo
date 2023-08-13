@@ -135,3 +135,4 @@ func (service *UserService) GetUser(userId string) User {
 
 	return user
 }
+

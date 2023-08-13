@@ -79,6 +79,37 @@ func (service *SessionService) Create(userId string) (*Session, error) {
 
 }
 
+func (service *SessionService) UserId(token string) (string, error) {
+	tokenHash := service.hash(token)
+	var session Session
+
+	res := service.collection.FindOne(context.TODO(), bson.M{
+		"tokenhash": tokenHash,
+	})
+	err := res.Decode(&session)
+	if err != nil {
+		return "", fmt.Errorf("session user: %w", err)
+	}
+
+	return session.UserId, nil
+}
+
+func (service *SessionService) Delete(token string) error {
+	tokenHash := service.hash(token)
+
+	res, err := service.collection.DeleteOne(context.TODO(), bson.M{
+		"tokenhash": tokenHash,
+	})
+	if err != nil {
+		return fmt.Errorf("delete session: %w", err)
+	}
+	if res.DeletedCount == 0 {
+		return fmt.Errorf("Cannot find session for given token")
+	}
+
+	return nil
+}
+
 func (service *SessionService) hash(token string) string {
 	hash := sha256.Sum256([]byte(token))
 	return base64.URLEncoding.EncodeToString(hash[:])
